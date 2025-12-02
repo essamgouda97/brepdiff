@@ -24,9 +24,33 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
+      - name: Cleanup
+        run: |
+          echo "Removing hosted toolcache..."
+          sudo rm -rf /opt/hostedtoolcache || true
+
+          echo "Removing .NET..."
+          sudo rm -rf /usr/share/dotnet || true
+
+          echo "Removing Android SDK..."
+          sudo rm -rf /usr/local/lib/android || true
+
+          echo "Removing GHC / Haskell..."
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/local/.ghcup || true
+
+          echo "Docker prune (just in case runner had leftovers)..."
+          sudo docker container prune -f || true
+          sudo docker image prune -af || true
+          sudo docker volume prune -f || true
+
+          echo "################################"
+          echo "Disk usage AFTER cleanup:"
+          echo "################################"
+          df -h
+
       - name: Build image
         run: |
-          rm -rf /opt/hostedtoolcache && \
           docker build \
             -t $IMAGE_NAME:latest \
             -t $IMAGE_NAME:${{ github.sha }} \
