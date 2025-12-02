@@ -26,6 +26,7 @@ jobs:
 
       - name: Build image
         run: |
+          rm -rf /opt/hostedtoolcache && \
           docker build \
             -t $IMAGE_NAME:latest \
             -t $IMAGE_NAME:${{ github.sha }} \
