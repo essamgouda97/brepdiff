@@ -1,0 +1,37 @@
+name: Build and Push Docker image
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # Change the image name if you want a different repo target.
+  IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/brepdiff
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build image
+        run: |
+          docker build \
+            -t $IMAGE_NAME:latest \
+            -t $IMAGE_NAME:${{ github.sha }} \
+            .
+
+      - name: Push image
+        run: |
+          docker push $IMAGE_NAME:latest
+          docker push $IMAGE_NAME:${{ github.sha }}
